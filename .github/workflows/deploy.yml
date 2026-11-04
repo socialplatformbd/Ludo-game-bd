@@ -15,11 +15,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Unzip project
+      - name: Unzip newest project zip
         run: |
+          ls -1 *.zip
+          NEWEST=""; BEST=0
+          for f in *.zip; do
+            T=$(git log -1 --format=%ct -- "$f")
+            if [ "$T" -gt "$BEST" ]; then BEST=$T; NEWEST="$f"; fi
+          done
+          echo "Using: $NEWEST"
           mkdir -p work
-          unzip -oq ./*.zip -d work
+          unzip -oq "$NEWEST" -d work
           APP=$(dirname "$(find work -name package.json -not -path '*/node_modules/*' | head -1)")
           echo "APP_DIR=$APP" >> "$GITHUB_ENV"
           echo "Project folder: $APP"
